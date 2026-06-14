@@ -1,0 +1,27 @@
+{
+  "name": "veritas",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy:genlayer": "node scripts/deploy-genlayer-veritas.mjs",
+    "deploy:base-sepolia": "hardhat run scripts/deploy-veritas.ts --network baseSepolia",
+    "deploy:base-mainnet": "hardhat run scripts/deploy-veritas.ts --network baseMainnet",
+    "relay": "ts-node backend/relay.ts",
+    "test:relay": "node tests/relay.test.js",
+    "test:solidity": "hardhat test test/veritas-resubmission.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.5",
+    "genlayer-js": "latest"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ethers": "^3.0.8",
+    "@types/node": "^22.10.5",
+    "hardhat": "^2.22.19",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

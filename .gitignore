@@ -1,0 +1,13 @@
+.venv/
+.pytest_cache/
+artifacts/
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+backend/.env
+backend/relay-state.json
+.env
+*.pyc
+__pycache__/
