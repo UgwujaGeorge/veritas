@@ -11,3 +11,4 @@ backend/relay-state.json
 .env
 *.pyc
 __pycache__/
+.vercel
