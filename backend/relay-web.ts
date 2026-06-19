@@ -1,5 +1,4 @@
 import { createServer } from "http";
-import { startRelay } from "./relay";
 
 const port = Number(process.env.PORT ?? 10000);
 
@@ -16,9 +15,20 @@ const server = createServer((req, res) => {
 
 server.listen(port, () => {
   console.log(`Veritas relay web service listening on port ${port}`);
+
+  try {
+    const { startRelay } = require("./relay.ts") as typeof import("./relay");
+    void startRelay().catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    });
+  } catch (error) {
+    console.error(error);
+    process.exitCode = 1;
+  }
 });
 
-void startRelay().catch((error) => {
+server.on("error", (error) => {
   console.error(error);
   process.exitCode = 1;
 });
