@@ -279,7 +279,7 @@ async function createBaseRelayTarget(config: BaseRelayTargetConfig, relayPrivate
   };
 }
 
-async function main() {
+export async function startRelay() {
   const { createAccount, createClient } = await import("genlayer-js");
   const { localnet, studionet, testnetAsimov, testnetBradbury } = await import("genlayer-js/chains");
   const { ExecutionResult, TransactionStatus } = await import("genlayer-js/types");
@@ -550,7 +550,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  main().catch((error) => {
+  startRelay().catch((error) => {
     console.error(error);
     process.exitCode = 1;
   });
