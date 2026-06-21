@@ -346,10 +346,10 @@ export async function startRelay() {
   const verdictRetryMs = Number(process.env.RELAY_VERDICT_RETRY_MS ?? 20_000);
   const pollMs = Number(process.env.RELAY_POLL_MS ?? 60_000);
   const maxBlockRange = Number(process.env.RELAY_MAX_BLOCK_RANGE ?? 2_000);
-  // After this many finalized-but-unusable GenLayer results (errored, no-consensus, or
-  // unparseable) for a single submission, the milestone is recorded as Rejected so the
-  // grantee can resubmit, instead of the relay retrying the same dead evaluation forever.
-  const maxVerdictAttempts = Math.max(1, Number(process.env.RELAY_MAX_VERDICT_ATTEMPTS ?? 3));
+  // A finalized-but-unusable GenLayer result (errored, no-consensus, or unparseable) is
+  // recorded as Rejected immediately so the grantee can resubmit — no retry loop. Raise
+  // RELAY_MAX_VERDICT_ATTEMPTS above 1 to re-evaluate before giving up.
+  const maxVerdictAttempts = Math.max(1, Number(process.env.RELAY_MAX_VERDICT_ATTEMPTS ?? 1));
   const relayState = readRelayState();
 
   function milestoneStateKey(target: BaseRelayTarget, grantId: bigint, milestoneIndex: bigint) {
