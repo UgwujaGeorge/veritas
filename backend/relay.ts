@@ -339,6 +339,11 @@ export async function startRelay() {
   const retryAfterByMilestone = new Map<string, number>();
   const verdictFailureCounts = new Map<string, number>();
   const retryMs = Number(process.env.RELAY_RETRY_MS ?? 5 * 60_000);
+  // Re-evaluating an unusable verdict is cheap and self-paced (each attempt already waits
+  // ~90s for finalization), so use a short gap. This lets the attempt cap complete within a
+  // couple of minutes — comfortably inside one awake window on a free-tier host that may
+  // sleep and reset the in-memory counter between longer retries.
+  const verdictRetryMs = Number(process.env.RELAY_VERDICT_RETRY_MS ?? 20_000);
   const pollMs = Number(process.env.RELAY_POLL_MS ?? 60_000);
   const maxBlockRange = Number(process.env.RELAY_MAX_BLOCK_RANGE ?? 2_000);
   // After this many finalized-but-unusable GenLayer results (errored, no-consensus, or
@@ -525,7 +530,7 @@ export async function startRelay() {
           console.warn(
             `[${target.name}] GenLayer produced no usable verdict for grant=${grantId.toString()} milestone=${milestoneIndex.toString()} (attempt ${failures}/${maxVerdictAttempts}); re-evaluating fresh`,
           );
-          retryAfterByMilestone.set(milestoneKey, Date.now() + retryMs);
+          retryAfterByMilestone.set(milestoneKey, Date.now() + verdictRetryMs);
           return;
         }
 
