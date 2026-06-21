@@ -35,6 +35,10 @@ export default function App() {
               <Route path="/grant/:id/milestone/:milestoneIndex/verdict" element={<Verdict />} />
             </Routes>
           </main>
+          <footer className="app-footer">
+            <span>Escrow on Base · Verdicts by GenLayer AI validators</span>
+            <span className="chain-pill">Veritas Protocol</span>
+          </footer>
         </div>
       </WalletProvider>
     </NetworkProvider>
