@@ -28,7 +28,10 @@ def test_evaluate_milestone_approved(direct_deploy, direct_alice, direct_vm):
 def test_evaluate_milestone_rejected(direct_deploy, direct_alice, direct_vm):
     contract = direct_deploy("contracts/veritas.py")
 
-    direct_vm.mock_web(r".*", {"status": 200, "body": "A README with no deployment details."})
+    direct_vm.mock_web(
+        r".*",
+        {"status": 200, "body": "Project README. Setup instructions and a roadmap, but no deployed contract address anywhere in the page."},
+    )
     direct_vm.mock_llm(
         r"grant milestone verifier",
         '{"approved": false, "confidence": 88, "evidence_summary": "No deployment details are present.", "reasoning": "The evidence does not show a deployment."}',
@@ -43,6 +46,25 @@ def test_evaluate_milestone_rejected(direct_deploy, direct_alice, direct_vm):
     verdict = json.loads(result)
     assert verdict["approved"] is False
     assert verdict["confidence"] == 88
+
+
+def test_evaluate_milestone_rejects_empty_or_blocked_page(direct_deploy, direct_alice, direct_vm):
+    contract = direct_deploy("contracts/veritas.py")
+
+    # An empty/blocked page should be rejected deterministically without ever calling the LLM,
+    # so the leader and validators agree and the transaction can reach consensus.
+    direct_vm.mock_web(r".*", {"status": 200, "body": "   "})
+
+    direct_vm.sender = direct_alice
+    result = contract.evaluate_milestone(
+        "https://blocked.example.com",
+        "Evidence must show a deployed contract address.",
+    )
+
+    verdict = json.loads(result)
+    assert verdict["approved"] is False
+    assert verdict["confidence"] == 0
+    assert "unreadable" in verdict["reasoning"] or "empty" in verdict["reasoning"]
 
 
 def test_evaluate_milestone_low_confidence_approval_is_rejected(direct_deploy, direct_alice, direct_vm):

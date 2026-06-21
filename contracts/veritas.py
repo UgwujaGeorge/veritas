@@ -5,6 +5,7 @@ import json
 from genlayer import *
 
 MAX_EVIDENCE_CHARS = 12000
+MIN_EVIDENCE_CHARS = 40
 MIN_APPROVAL_CONFIDENCE = 55
 CONFIDENCE_TOLERANCE = 35
 
@@ -23,6 +24,17 @@ class Veritas(gl.Contract):
         def leader_fn():
             page_text = gl.nondet.web.render(evidence_url, mode="text")
             content = str(page_text)[:MAX_EVIDENCE_CHARS]
+            # If the page is empty, blocked, or otherwise unreadable, short-circuit to a
+            # deterministic rejection instead of asking the LLM. This keeps the leader and
+            # every validator in agreement on inaccessible evidence, so the transaction
+            # reaches consensus (Rejected) rather than going Undetermined.
+            if len(content.strip()) < MIN_EVIDENCE_CHARS:
+                return {
+                    "approved": False,
+                    "confidence": 0,
+                    "evidence_summary": "",
+                    "reasoning": "Evidence page was empty, blocked, or unreadable, so the milestone could not be verified.",
+                }
             prompt = self._build_prompt(evidence_url, criteria, content)
             response = gl.nondet.exec_prompt(prompt, response_format="json")
             return self._normalize_verdict_response(response)
