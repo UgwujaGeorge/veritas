@@ -1,0 +1,35 @@
+name: Keep relay awake
+
+# Render's free web service plan spins the relay down after ~15 minutes with no
+# inbound HTTP traffic, which stops its polling loop and leaves milestones stuck
+# in "Submitted". This workflow pings the health endpoint on a schedule so the
+# service stays awake and keeps processing verdicts.
+#
+# Notes:
+# - GitHub cron is best-effort and can be delayed several minutes under load.
+# - GitHub disables scheduled workflows after 60 days with no repo activity.
+# - For a guaranteed no-sleep relay, upgrade the Render service to a paid plan.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every ~10 minutes
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping relay /healthz
+        run: |
+          URL="https://veritas-relay.onrender.com/healthz"
+          for attempt in 1 2 3 4; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 90 "$URL" || echo 000)
+            echo "attempt $attempt: HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "relay is awake"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "relay did not return 200 after retries"
+          exit 1
