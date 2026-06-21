@@ -452,8 +452,17 @@ export async function startRelay() {
       const milestone = (await target.contract.getMilestone(grantId, milestoneIndex)) as {
         evidenceUrl?: string;
         criteria: string;
+        status?: bigint | number;
         resubmissionCount?: bigint;
       };
+      // Only Submitted milestones (status 1) need a verdict. If a concurrent scan/event
+      // already resolved it (Approved/Rejected), skip — recordVerdict would revert with
+      // MilestoneNotSubmitted, and a fresh GenLayer evaluation would be wasted.
+      if (milestone.status !== undefined && Number(milestone.status) !== 1) {
+        clearPendingTx(milestoneKey, legacyKey);
+        retryAfterByMilestone.delete(milestoneKey);
+        return;
+      }
       const currentEvidenceUrl = String(milestone.evidenceUrl ?? evidenceUrl);
       const attemptNumber = getAttemptNumber(milestone);
       const pendingHash = getReusablePendingTx(
