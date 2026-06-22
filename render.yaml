@@ -3,6 +3,6 @@ services:
     name: veritas-relay
     runtime: node
     plan: free
-    buildCommand: npm ci
-    startCommand: npm run relay:web
+    buildCommand: npm ci && npm run build:relay
+    startCommand: npm run start:relay
     healthCheckPath: /healthz

@@ -9,6 +9,8 @@
     "deploy:base-mainnet": "hardhat run scripts/deploy-veritas.ts --network baseMainnet",
     "relay": "ts-node backend/relay.ts",
     "relay:web": "ts-node backend/relay-web.ts",
+    "build:relay": "tsc -p tsconfig.relay.json",
+    "start:relay": "node dist/relay-web.js",
     "test:relay": "node tests/relay.test.js",
     "test:solidity": "hardhat test test/veritas-resubmission.js"
   },
